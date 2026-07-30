@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acme Policy Assistant</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 16px; background: #f5f6f8; }
+  h1 { font-size: 1.3rem; }
+  #chat { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .msg { padding: 10px 14px; border-radius: 10px; white-space: pre-wrap; }
+  .user { background: #2563eb; color: white; align-self: flex-end; max-width: 85%; }
+  .bot { background: white; border: 1px solid #ddd; align-self: flex-start; max-width: 95%; }
+  .sources { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .source { background: #f0f4ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 8px; font-size: 0.85rem; }
+  .source p { margin: 4px 0 0; color: #555; }
+  form { display: flex; gap: 8px; }
+  input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
+  button { padding: 10px 18px; border: none; border-radius: 8px; background: #2563eb; color: white; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>Acme Policy Assistant</h1>
+<p>Ask about PTO, expenses, security, remote work, holidays and more.</p>
+<div id="chat"></div>
+<form id="form">
+  <input id="question" placeholder="e.g. How many PTO days do I get?" autocomplete="off">
+  <button>Ask</button>
+</form>
+<script>
+const chat = document.getElementById("chat");
+const form = document.getElementById("form");
+const input = document.getElementById("question");
+
+function addMessage(cls, text) {
+  const div = document.createElement("div");
+  div.className = "msg " + cls;
+  div.textContent = text;
+  chat.appendChild(div);
+  div.scrollIntoView();
+  return div;
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const q = input.value.trim();
+  if (!q) return;
+  addMessage("user", q);
+  input.value = "";
+  const thinking = addMessage("bot", "Thinking...");
+  try {
+    const resp = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: q })
+    });
+    const data = await resp.json();
+    thinking.textContent = data.answer || data.error;
+    if (data.sources && data.sources.length) {
+      const box = document.createElement("div");
+      box.className = "sources";
+      for (const s of data.sources) {
+        const card = document.createElement("div");
+        card.className = "source";
+        const link = document.createElement("a");
+        link.href = s.link;
+        link.target = "_blank";
+        link.textContent = s.title + " — " + s.heading;
+        const snip = document.createElement("p");
+        snip.textContent = s.snippet + "...";
+        card.appendChild(link);
+        card.appendChild(snip);
+        box.appendChild(card);
+      }
+      thinking.appendChild(box);
+    }
+  } catch (err) {
+    thinking.textContent = "Error: " + err.message;
+  }
+});
+</script>
+</body>
+</html>
