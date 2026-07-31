@@ -1,10 +1,15 @@
+import os
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 import rag
+import ingest
 
 load_dotenv()
 
 app = Flask(__name__)
+
+if os.getenv("COHERE_API_KEY") and rag.get_collection().count() == 0:
+    ingest.main()
 
 
 @app.route("/")
@@ -24,7 +29,7 @@ def chat():
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "ok", "chunks": rag.get_collection().count()})
 
 
 @app.route("/docs/<doc_id>")
