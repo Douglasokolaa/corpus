@@ -1,6 +1,7 @@
 # Acme Policy Assistant (RAG)
 
-A Retrieval-Augmented Generation app that answers questions about Acme Corporation's company policies. Built with Flask, Cohere embeddings, ChromaDB, and an OpenAI chat model. No LangChain — the pipeline is implemented directly.
+A Retrieval-Augmented Generation app that answers questions about Acme Corporation's company policies. Built with Flask,
+Cohere embeddings, ChromaDB, and an OpenAI chat model. No LangChain — the pipeline is implemented directly.
 
 ## How it works
 
@@ -21,8 +22,8 @@ pip install -r requirements.txt
 ```
 
 2. Get API keys:
-   - Cohere (embeddings): https://dashboard.cohere.com/api-keys (trial key is free)
-   - OpenAI (LLM): https://platform.openai.com/api-keys (paid, but `gpt-4o-mini` costs well under a cent per question)
+    - Cohere (embeddings): https://dashboard.cohere.com/api-keys (trial key is free)
+    - OpenAI (LLM): https://platform.openai.com/api-keys (paid, but `gpt-4o-mini` costs well under a cent per question)
 
 3. Copy `.env.example` to `.env` and fill in your keys:
 
@@ -67,17 +68,26 @@ With your `.env` keys set and the index built:
 python eval/evaluate.py
 ```
 
-Runs 22 questions (20 policy questions + 2 off-topic refusal checks), measures groundedness, citation accuracy, partial match, refusal accuracy, and latency p50/p95, and writes `eval/results.md`. See `design-and-evaluation.md` for details.
+Runs 22 questions (20 policy questions + 2 off-topic refusal checks), measures groundedness, citation accuracy, partial
+match, refusal accuracy, and latency p50/p95, and writes `eval/results.md`. See `design-and-evaluation.md` for details.
 
-A full eval run makes ~40 LLM calls (20 answers + 20 judge calls); with `gpt-4o-mini` that costs a few cents. The app retries automatically on transient 429s.
+A full eval run makes ~40 LLM calls (20 answers + 20 judge calls); with `gpt-4o-mini` that costs a few cents. The app
+retries automatically on transient 429s.
 
 ## Reproducibility
 
-There is no randomness in the pipeline: chunking is deterministic, retrieval uses fixed k=4, generation uses temperature 0, and the evaluation runs every question in fixed order (no sampling), so no seed is needed.
+There is no randomness in the pipeline: chunking is deterministic, retrieval uses fixed k=4, generation uses temperature
+0, and the evaluation runs every question in fixed order (no sampling), so no seed is needed.
 
-## Deployment (optional)
+## Deployment
 
-The app runs on Render/Railway free tiers with start command `gunicorn app:app`. Set `COHERE_API_KEY`, `OPENAI_API_KEY`, and optionally `OPENAI_MODEL` as environment variables, and run `python ingest.py` as a build step so the Chroma index exists on the instance.
+`render.yaml` is a Render Blueprint: in the Render dashboard choose New > Blueprint, point it at this repo, and enter
+`COHERE_API_KEY` and `OPENAI_API_KEY` when prompted. The build step installs dependencies and runs `python ingest.py` so
+the Chroma index exists on the instance, and the app starts with `gunicorn app:app`.
+
+Deploys are gated on CI: `autoDeploy` is off in `render.yaml`, and `.github/workflows/cd.yaml` triggers a Render deploy
+only after the CI workflow succeeds on `main`. One-time setup: in the Render service settings copy the Deploy Hook URL,
+then add it as a GitHub Actions secret named `RENDER_DEPLOY_HOOK_URL` (repo Settings > Secrets and variables > Actions).
 
 ## Project structure
 
