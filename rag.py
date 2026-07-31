@@ -57,13 +57,13 @@ def call_llm(messages):
             timeout=60,
         )
         if resp.status_code == 429:
-            time.sleep(15)
+            time.sleep(5)
             continue
         resp.raise_for_status()
         data = resp.json()
         if "choices" in data:
             return data["choices"][0]["message"]["content"]
-        time.sleep(15)
+        time.sleep(5)
     resp.raise_for_status()
     raise Exception("LLM call failed after retries: " + resp.text[:200])
 

@@ -83,7 +83,9 @@ There is no randomness in the pipeline: chunking is deterministic, retrieval use
 
 `render.yaml` is a Render Blueprint: in the Render dashboard choose New > Blueprint, point it at this repo, and enter
 `COHERE_API_KEY` and `OPENAI_API_KEY` when prompted. The build step installs dependencies and runs `python ingest.py` so
-the Chroma index exists on the instance, and the app starts with `gunicorn app:app`.
+the Chroma index exists on the instance, and the app starts with `gunicorn app:app --timeout 120` (LLM calls plus startup
+ingestion can exceed gunicorn's default 30-second worker timeout on a small instance). If you created the service manually
+instead of from the blueprint, set the same build and start commands in the service settings.
 
 Deploys are gated on CI: `autoDeploy` is off in `render.yaml`, and `.github/workflows/cd.yaml` triggers a Render deploy
 only after the CI workflow succeeds on `main`. One-time setup: in the Render service settings copy the Deploy Hook URL,
