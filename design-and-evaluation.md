@@ -63,6 +63,7 @@ Full per-question results are in `eval/results.md`. Summary of the run on 2026-0
 | Latency p50 | 3.25 s |
 | Latency p95 | 8.47 s |
 
-**Note on the 80% scores.** All four questions marked "not grounded" were judge-call failures, not answer failures: the OpenRouter free tier rate-limited or garbled the judge responses, and a failed judge scores conservatively as `grounded=false`. Inspecting those four answers in `eval/results.md` (receipt threshold, incident reporting window, home office stipend, holiday count) shows each one is correct, matches the gold answer, and cites the right document — so measured groundedness on successfully judged questions is 16/16 (100%). The single partial-match miss was also an artifact: the model emitted a non-breaking space inside "24 hours", defeating substring matching. Both artifacts are fixed (judge retries with backoff, unicode normalization before matching) for the next run.
-
-**Free-tier constraint discovered during evaluation.** OpenRouter's free models allow 50 requests/day without credits; one full eval run (~40 LLM calls: 20 answers + 20 judge calls) nearly exhausts it. This is what motivated switching the LLM to OpenAI (see the LLM design decision above). The two off-topic questions cost zero LLM calls because the retrieval distance gate refuses before generation.
+**Free-tier constraint discovered during evaluation.** OpenRouter's free models allow 50 requests/day without credits;
+one full eval run (~40 LLM calls: 20 answers + 20 judge calls) nearly exhausts it. This is what motivated switching the
+LLM to OpenAI (see the LLM design decision above). The two off-topic questions cost zero LLM calls because the retrieval
+distance gate refuses before generation.
